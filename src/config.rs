@@ -211,13 +211,13 @@ impl PhysCpuList {
         let mut vcpu_pcpu_tuples = Vec::new();
         let mut pcpu_mask_flag = false;
 
-        if let Some(phys_cpu_ids) = &self.phys_cpu_ids {
-            if self.cpu_num != phys_cpu_ids.len() {
-                error!(
-                    "ERROR!!!: cpu_num: {}, phys_cpu_ids: {:?}",
-                    self.cpu_num, self.phys_cpu_ids
-                );
-            }
+        if let Some(phys_cpu_ids) = &self.phys_cpu_ids
+            && self.cpu_num != phys_cpu_ids.len()
+        {
+            error!(
+                "ERROR!!!: cpu_num: {}, phys_cpu_ids: {:?}",
+                self.cpu_num, self.phys_cpu_ids
+            );
         }
 
         for vcpu_id in 0..self.cpu_num {
