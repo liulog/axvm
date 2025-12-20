@@ -167,6 +167,7 @@ impl<H: AxVMHal, U: AxVCpuHal> AxVM<H, U> {
         let dtb_addr = inner_mut.config.image_config().dtb_load_gpa;
         let vcpu_id_pcpu_sets = inner_mut.config.phys_cpu_ls.get_vcpu_affinities_pcpu_ids();
 
+        info!("dtb_load_gpa: {:?}", dtb_addr);
         debug!("id: {}, VCpuIdPCpuSets: {vcpu_id_pcpu_sets:#x?}", self.id());
 
         let mut vcpu_list = Vec::with_capacity(vcpu_id_pcpu_sets.len());
@@ -211,7 +212,7 @@ impl<H: AxVMHal, U: AxVCpuHal> AxVM<H, U> {
         }
 
         for pt_addr in inner_mut.config.pass_through_addresses() {
-            debug!(
+            info!(
                 "PT addr region: [{:#x}~{:#x}]",
                 pt_addr.base_gpa,
                 pt_addr.base_gpa + pt_addr.length,
@@ -501,8 +502,10 @@ impl<H: AxVMHal, U: AxVCpuHal> AxVM<H, U> {
                 }
                 AxVCpuExitReason::IoRead { port, width } => {
                     let val = self.get_devices().handle_port_read(*port, *width)?;
+                    #[cfg(not(target_arch = "riscv64"))]
                     vcpu.set_gpr(0, val); // The target is always eax/ax/al, todo: handle access_width correctly
-
+                    #[cfg(target_arch = "riscv64")]
+                    vcpu.set_gpr(riscv_vcpu::GprIndex::A0 as usize, val);
                     true
                 }
                 AxVCpuExitReason::IoWrite { port, width, data } => {
